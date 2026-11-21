@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile - TAMBAYAN</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f5f5f5; margin: 0; color: #222; }
+        nav { background: #fff; border-bottom: 1px solid #ddd; padding: 14px 32px; display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-weight: 700; font-size: 18px; }
+        .nav-actions { display: flex; gap: 16px; align-items: center; }
+        .nav-actions a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 500; }
+        .nav-actions button { background: #dc2626; color: #fff; border: none; padding: 7px 14px; border-radius: 5px; cursor: pointer; font-size: 13px; }
+        .container { max-width: 600px; margin: 32px auto; background: #fff; padding: 28px; border-radius: 8px; border: 1px solid #ddd; }
+        .profile-header { display: flex; align-items: center; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid #eee; margin-bottom: 20px; }
+        .avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 1px solid #ccc; background: #e5e7eb; }
+        .avatar-placeholder { width: 72px; height: 72px; border-radius: 50%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 24px; color: #555; }
+        h2 { margin: 0 0 4px; font-size: 20px; }
+        .meta { font-size: 13px; color: #666; margin: 0; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
+        input { width: 100%; padding: 9px 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        input:focus { outline: none; border-color: #2563eb; }
+        ul.errorlist { color: #dc2626; font-size: 12px; list-style: none; padding: 0; margin: 4px 0 0; }
+        .btn-save { background: #2563eb; color: #fff; border: none; padding: 10px 18px; border-radius: 5px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        .btn-save:hover { background: #1d4ed8; }
+        .messages { padding: 10px; border-radius: 5px; background: #dcfce7; color: #15803d; font-size: 13px; margin-bottom: 16px; }
+        .messages p { margin: 0; }
+        .messages .error { background: #fee2e2; color: #b91c1c; }
+    </style>
+</head>
+<body>
+    <nav>
+        <span class="brand">TAMBAYAN</span>
+        <div class="nav-actions">
+            {% if user.role == 'admin' %}
+                <a href="{% url 'admin-dashboard' %}">Admin Dashboard</a>
+            {% else %}
+                <a href="{% url 'resident-dashboard' %}">Resident Dashboard</a>
+            {% endif %}
+            <a href="{% url 'profile' %}">My Profile</a>
+            <form action="{% url 'logout' %}" method="post" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <p class="{% if message.tags == 'error' %}error{% endif %}">{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="profile-header">
+            {% if user.profile_photo %}
+                <img src="{{ user.profile_photo.url }}" alt="Profile Photo" class="avatar">
+            {% else %}
+                <div class="avatar-placeholder">{{ user.username|first|upper }}</div>
+            {% endif %}
+            <div>
+                <h2>{{ user.get_full_name|default:user.username }}</h2>
+                <p class="meta">@{{ user.username }} · Role: {{ user.get_role_display }}</p>
+            </div>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn-save">Save Changes</button>
+        </form>
+    </div>
+</body>
+</html>
