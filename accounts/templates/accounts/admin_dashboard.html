@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - TAMBAYAN</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f5f5f5; margin: 0; color: #222; }
+        nav { background: #fff; border-bottom: 1px solid #ddd; padding: 14px 32px; display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-weight: 700; font-size: 18px; }
+        .nav-actions { display: flex; gap: 18px; align-items: center; }
+        .nav-actions a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 500; }
+        .nav-actions button { background: #dc2626; color: #fff; border: none; padding: 7px 14px; border-radius: 5px; cursor: pointer; font-size: 13px; }
+        .container { max-width: 800px; margin: 32px auto; background: #fff; padding: 28px; border-radius: 8px; border: 1px solid #ddd; }
+        h1 { margin: 10px 0; font-size: 22px; }
+        .badge { display: inline-block; background: #fee2e2; color: #b91c1c; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+        .panel { border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; background: #fafafa; }
+        .panel h3 { margin: 0 0 6px; font-size: 16px; }
+        .panel p { margin: 0; font-size: 13px; color: #555; }
+    </style>
+</head>
+<body>
+    <nav>
+        <span class="brand">TAMBAYAN Admin</span>
+        <div class="nav-actions">
+            <a href="{% url 'admin-dashboard' %}">Overview</a>
+            <a href="/admin/">Site Administration</a>
+            <a href="{% url 'profile' %}">My Profile</a>
+            <form action="{% url 'logout' %}" method="post" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </nav>
+    <div class="container">
+        <span class="badge">Administrator</span>
+        <h1>Welcome, {{ user.get_full_name|default:user.username }}</h1>
+        <p>Email: {{ user.email }} | Contact: {{ user.contact_number|default:"Not provided" }}</p>
+
+        <div class="grid">
+            <div class="panel">
+                <h3>Resident Accounts</h3>
+                <p>Manage registered community residents and verify account roles.</p>
+            </div>
+            <div class="panel">
+                <h3>Community Announcements</h3>
+                <p>Post and moderate updates visible across the TAMBAYAN portal.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
