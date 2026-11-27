@@ -10,20 +10,25 @@
         .nav-actions { display: flex; gap: 18px; align-items: center; }
         .nav-actions a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 500; }
         .nav-actions button { background: #dc2626; color: #fff; border: none; padding: 7px 14px; border-radius: 5px; cursor: pointer; font-size: 13px; }
-        .container { max-width: 800px; margin: 32px auto; background: #fff; padding: 28px; border-radius: 8px; border: 1px solid #ddd; }
+        .container { max-width: 860px; margin: 32px auto; background: #fff; padding: 28px; border-radius: 8px; border: 1px solid #ddd; }
         h1 { margin: 10px 0; font-size: 22px; }
         .badge { display: inline-block; background: #dcfce7; color: #15803d; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
         .panel { border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; background: #fafafa; }
         .panel h3 { margin: 0 0 6px; font-size: 16px; }
-        .panel p { margin: 0; font-size: 13px; color: #555; }
+        .panel p { margin: 0 0 10px; font-size: 13px; color: #555; }
+        .btn-primary { display: inline-block; background: #2563eb; color: #fff; text-decoration: none; padding: 7px 14px; border-radius: 5px; font-size: 13px; font-weight: 600; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+        .list-item:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
     <nav>
         <span class="brand">TAMBAYAN</span>
         <div class="nav-actions">
-            <a href="{% url 'resident-dashboard' %}">Home</a>
+            <a href="{% url 'resident-dashboard' %}">Dashboard</a>
+            <a href="{% url 'listing-list' %}">Community Feed</a>
+            <a href="{% url 'my-listings' %}">My Listings</a>
             <a href="{% url 'profile' %}">My Profile</a>
             <form action="{% url 'logout' %}" method="post" style="margin:0;">
                 {% csrf_token %}
@@ -38,13 +43,30 @@
 
         <div class="grid">
             <div class="panel">
-                <h3>Neighborhood Bulletin</h3>
-                <p>Stay updated with the latest community notices and local events.</p>
+                <h3>Community Skill & Resource Feed</h3>
+                <p>There are currently <strong>{{ community_open_count }}</strong> open offers and needs in the neighborhood.</p>
+                <a href="{% url 'listing-list' %}" class="btn-primary">Browse Feed</a>
             </div>
             <div class="panel">
-                <h3>Your Account Profile</h3>
-                <p>Keep your contact details and profile photo up to date in <a href="{% url 'profile' %}">My Profile</a>.</p>
+                <h3>Share a Skill or Resource</h3>
+                <p>You have <strong>{{ my_open_count }}</strong> active listing(s). Offer help or request tools from neighbors.</p>
+                <a href="{% url 'listing-create' %}" class="btn-primary">+ Post New Listing</a>
             </div>
+        </div>
+
+        <h3 style="margin: 24px 0 10px; font-size: 16px;">Your Recent Listings</h3>
+        <div class="panel" style="background:#fff;">
+            {% for item in user_listings %}
+                <div class="list-item">
+                    <div>
+                        <a href="{% url 'listing-detail' item.pk %}" style="color:#2563eb; text-decoration:none; font-weight:600;">{{ item.title }}</a>
+                        <span style="color:#666; font-size:12px;">({{ item.get_listing_type_display }} · {{ item.get_status_display }})</span>
+                    </div>
+                    <a href="{% url 'listing-update' item.pk %}" style="color:#555; font-size:13px;">Edit</a>
+                </div>
+            {% empty %}
+                <p style="margin:0;">No listings yet. Click <strong>+ Post New Listing</strong> above to create your first one.</p>
+            {% endfor %}
         </div>
     </div>
 </body>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Community Listings - TAMBAYAN</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f5f5f5; margin: 0; color: #222; }
+        nav { background: #fff; border-bottom: 1px solid #ddd; padding: 14px 32px; display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-weight: 700; font-size: 18px; }
+        .nav-actions { display: flex; gap: 16px; align-items: center; }
+        .nav-actions a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 500; }
+        .nav-actions button { background: #dc2626; color: #fff; border: none; padding: 7px 14px; border-radius: 5px; cursor: pointer; font-size: 13px; }
+        .container { max-width: 900px; margin: 32px auto; padding: 0 16px; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-primary { background: #2563eb; color: #fff; text-decoration: none; padding: 9px 16px; border-radius: 5px; font-size: 14px; font-weight: 600; }
+        .filter-form { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 14px; margin-bottom: 18px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .filter-form input, .filter-form select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; font-family: inherit; }
+        .filter-form input { flex: 2; min-width: 180px; }
+        .filter-form select { flex: 1; min-width: 130px; }
+        .btn-reset { padding: 9px 12px; border: 1px solid #ccc; border-radius: 5px; text-decoration: none; color: #333; font-size: 14px; background: #fff; }
+        .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 14px; }
+        .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .badge { padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .badge-offer { background: #dcfce7; color: #15803d; }
+        .badge-need { background: #fef3c7; color: #b45309; }
+        .badge-status { background: #e5e7eb; color: #374151; margin-left: 6px; }
+        .card h3 { margin: 6px 0; font-size: 18px; }
+        .card h3 a { color: #111; text-decoration: none; }
+        .card h3 a:hover { color: #2563eb; }
+        .meta { font-size: 13px; color: #666; margin-bottom: 10px; }
+        .messages { padding: 10px 14px; border-radius: 5px; background: #dcfce7; color: #15803d; font-size: 13px; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <span class="brand">TAMBAYAN</span>
+        <div class="nav-actions">
+            {% if user.role == 'admin' %}
+                <a href="{% url 'admin-dashboard' %}">Dashboard</a>
+            {% else %}
+                <a href="{% url 'resident-dashboard' %}">Dashboard</a>
+            {% endif %}
+            <a href="{% url 'listing-list' %}">Community Feed</a>
+            <a href="{% url 'my-listings' %}">My Listings</a>
+            <a href="{% url 'profile' %}">My Profile</a>
+            <form action="{% url 'logout' %}" method="post" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}{{ message }}{% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="header-row">
+            <h1 style="margin:0; font-size:22px;">Skill & Resource Listings</h1>
+            <a href="{% url 'listing-create' %}" class="btn-primary">+ Post Skill / Resource</a>
+        </div>
+
+        <form method="GET" class="filter-form">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search title, keyword, or purok/barangay...">
+            <select name="type">
+                <option value="">All Types</option>
+                {% for val, label in type_choices %}
+                    <option value="{{ val }}" {% if selected_type == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="category">
+                <option value="">All Categories</option>
+                {% for val, label in category_choices %}
+                    <option value="{{ val }}" {% if selected_category == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="status">
+                <option value="">All Statuses</option>
+                {% for val, label in status_choices %}
+                    <option value="{{ val }}" {% if selected_status == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn-primary" style="border:none; cursor:pointer;">Filter</button>
+            {% if query or selected_type or selected_category or selected_status %}
+                <a href="{% url 'listing-list' %}" class="btn-reset">Reset</a>
+            {% endif %}
+        </form>
+
+        {% for listing in listings %}
+            <div class="card">
+                <div class="card-top">
+                    <div>
+                        <span class="badge {% if listing.listing_type == 'offer' %}badge-offer{% else %}badge-need{% endif %}">
+                            {{ listing.get_listing_type_display }}
+                        </span>
+                        <span class="badge badge-status">{{ listing.get_category_display }}</span>
+                        <span class="badge badge-status">{{ listing.get_status_display }}</span>
+                    </div>
+                    <span class="meta">{{ listing.created_at|date:"M d, Y" }}</span>
+                </div>
+                <h3><a href="{% url 'listing-detail' listing.pk %}">{{ listing.title }}</a></h3>
+                <p style="margin: 6px 0 10px; font-size: 14px; color: #444;">{{ listing.description|truncatewords:28 }}</p>
+                <div class="meta">
+                    Posted by <strong>{{ listing.owner.get_full_name|default:listing.owner.username }}</strong> · Location: {{ listing.location }}
+                </div>
+            </div>
+        {% empty %}
+            <div class="card">
+                <p style="margin:0; color:#666;">No matching listings found.</p>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
