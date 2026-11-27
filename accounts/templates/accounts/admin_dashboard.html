@@ -10,13 +10,16 @@
         .nav-actions { display: flex; gap: 18px; align-items: center; }
         .nav-actions a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 500; }
         .nav-actions button { background: #dc2626; color: #fff; border: none; padding: 7px 14px; border-radius: 5px; cursor: pointer; font-size: 13px; }
-        .container { max-width: 800px; margin: 32px auto; background: #fff; padding: 28px; border-radius: 8px; border: 1px solid #ddd; }
+        .container { max-width: 860px; margin: 32px auto; background: #fff; padding: 28px; border-radius: 8px; border: 1px solid #ddd; }
         h1 { margin: 10px 0; font-size: 22px; }
         .badge { display: inline-block; background: #fee2e2; color: #b91c1c; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
         .panel { border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; background: #fafafa; }
         .panel h3 { margin: 0 0 6px; font-size: 16px; }
         .panel p { margin: 0; font-size: 13px; color: #555; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; }
+        th { background: #f9fafb; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -24,6 +27,7 @@
         <span class="brand">TAMBAYAN Admin</span>
         <div class="nav-actions">
             <a href="{% url 'admin-dashboard' %}">Overview</a>
+            <a href="{% url 'listing-list' %}">All Listings</a>
             <a href="/admin/">Site Administration</a>
             <a href="{% url 'profile' %}">My Profile</a>
             <form action="{% url 'logout' %}" method="post" style="margin:0;">
@@ -39,14 +43,40 @@
 
         <div class="grid">
             <div class="panel">
-                <h3>Resident Accounts</h3>
-                <p>Manage registered community residents and verify account roles.</p>
+                <h3>Total Community Listings</h3>
+                <p><strong>{{ total_listings }}</strong> total listings posted ({{ open_listings }} currently open).</p>
             </div>
             <div class="panel">
-                <h3>Community Announcements</h3>
-                <p>Post and moderate updates visible across the TAMBAYAN portal.</p>
+                <h3>Content Moderation</h3>
+                <p>Admins can review community listings below and remove inappropriate entries.</p>
             </div>
         </div>
+
+        <h3 style="margin: 24px 0 8px; font-size: 16px;">Recent Community Listings (Moderation Queue)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Posted By</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in recent_listings %}
+                    <tr>
+                        <td><a href="{% url 'listing-detail' item.pk %}" style="color:#2563eb; text-decoration:none;">{{ item.title }}</a></td>
+                        <td>{{ item.get_listing_type_display }}</td>
+                        <td>{{ item.owner.username }}</td>
+                        <td>{{ item.get_status_display }}</td>
+                        <td><a href="{% url 'listing-delete' item.pk %}" style="color:#dc2626; text-decoration:none; font-size:13px;">Remove</a></td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5" style="color:#666;">No listings in the database yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </body>
 </html>

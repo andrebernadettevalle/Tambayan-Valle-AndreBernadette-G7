@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Q
 from .models import Listing
 from .forms import ListingForm
 
@@ -8,7 +9,36 @@ from .forms import ListingForm
 @login_required
 def listing_list(request):
     listings = Listing.objects.select_related('owner').all()
-    return render(request, 'listings/listing_list.html', {'listings': listings})
+
+    query = request.GET.get('q', '').strip()
+    listing_type = request.GET.get('type', '').strip()
+    category = request.GET.get('category', '').strip()
+    status = request.GET.get('status', '').strip()
+
+    if query:
+        listings = listings.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(location__icontains=query)
+        )
+    if listing_type:
+        listings = listings.filter(listing_type=listing_type)
+    if category:
+        listings = listings.filter(category=category)
+    if status:
+        listings = listings.filter(status=status)
+
+    context = {
+        'listings': listings,
+        'query': query,
+        'selected_type': listing_type,
+        'selected_category': category,
+        'selected_status': status,
+        'type_choices': Listing.LISTING_TYPE_CHOICES,
+        'category_choices': Listing.CATEGORY_CHOICES,
+        'status_choices': Listing.STATUS_CHOICES,
+    }
+    return render(request, 'listings/listing_list.html', context)
 
 
 @login_required

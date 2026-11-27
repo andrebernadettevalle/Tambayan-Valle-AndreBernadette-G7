@@ -1,35 +1,23 @@
 from django import forms
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser
+
+User = get_user_model()
 
 
-class CustomUserRegistrationForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-
-    class Meta(UserCreationForm.Meta):
-        model = CustomUser
-        fields = ('username', 'email', 'contact_number', 'role', 'profile_photo')
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['username'].help_text = ''
+class CustomUserCreationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email', 'role', 'contact_number')
 
     def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if CustomUser.objects.filter(email__iexact=email).exists():
+        email = self.cleaned_data.get('email', '').strip().lower()
+        if email and User.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError("An account with this email already exists.")
         return email
 
 
-class CustomUserProfileForm(forms.ModelForm):
-    email = forms.EmailField(required=True)
-
+class ProfileUpdateForm(forms.ModelForm):
     class Meta:
-        model = CustomUser
-        fields = ('first_name', 'last_name', 'email', 'contact_number', 'profile_photo')
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if CustomUser.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError("This email is already in use by another account.")
-        return email
+        model = User
+        fields = ('first_name', 'last_name', 'email', 'contact_number')
